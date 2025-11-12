@@ -63,9 +63,11 @@
   <label>
     <input type="checkbox" id="useRefine"> 연마제 사용 (최대 2개 옵션 잠금 가능)
   </label>
-  <button class="btn" onclick="rollOptions()">옵션 굴리기</button>
-  <div id="options"></div>
+
+  <!-- 버튼 순서 바뀐 부분 -->
   <button class="btn" onclick="backToMain()">메인 화면으로</button>
+  <div id="options"></div>
+  <button class="btn" onclick="rollOptions()">옵션 굴리기</button>
 </div>
 
 <script>
@@ -252,6 +254,7 @@ function renderOptions(){
   }
 }
 
+/* ==================== 초기화 ==================== */
 optionValues = pickUniqueOptions([]);
 while(optionValues.length<4){
   const existingNames = optionValues.map(v=>v.name);
