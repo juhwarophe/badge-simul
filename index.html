@@ -49,7 +49,7 @@
 
 <!-- 공사중 화면 -->
 <div id="underConstruction">
-  <div>🔧 공사중입니다 — 곧 돌아옵니다!</div>
+  <div>공사중입니다</div>
   <button class="smallBtn" onclick="backToMain()">메인으로</button>
 </div>
 
@@ -69,7 +69,6 @@
 </div>
 
 <script>
-/* ==================== 화면 전환 ==================== */
 function showSimulator(){
   document.getElementById("mainScreen").style.display = "none";
   document.getElementById("underConstruction").style.display = "none";
@@ -89,7 +88,6 @@ document.getElementById("leftImage").addEventListener("click", showSimulator);
 document.getElementById("midImage").addEventListener("click", showUnderConstruction);
 document.getElementById("rightImage").addEventListener("click", ()=>alert("준비중입니다."));
 
-/* ==================== 시뮬레이터 데이터 ==================== */
 const groups = [
   {
     weight:30,
@@ -148,7 +146,6 @@ let optionValues = [];
 let rollCount = 0;
 const rollCountSpan = document.getElementById("rollCount");
 
-/* ==================== 유틸리티 함수 ==================== */
 function randomByWeight(weights){
   const total = weights.reduce((a,b)=>a+b,0);
   let r = Math.random()*total;
@@ -190,7 +187,6 @@ function pickUniqueOptions(excludeNames){
   return result;
 }
 
-/* ==================== 옵션 굴리기 ==================== */
 function rollOptions(){
   const lockedNames = [];
   for(let i=0;i<4;i++){
@@ -211,7 +207,6 @@ function rollOptions(){
   renderOptions();
 }
 
-/* ==================== 리셋 기능 ==================== */
 function resetSimulation(){
   if(!confirm("시뮬레이션 횟수를 초기화할까요?")) return;
   rollCount = 0;
@@ -221,7 +216,6 @@ function resetSimulation(){
   renderOptions();
 }
 
-/* ==================== 옵션 렌더링 ==================== */
 function toggleLock(i){
   if(!useRefine.checked) return;
   if(lockedOptions.has(i)){
@@ -256,7 +250,6 @@ function renderOptions(){
   }
 }
 
-/* ==================== 초기화 ==================== */
 optionValues = pickUniqueOptions([]);
 while(optionValues.length<4){
   const existingNames = optionValues.map(v=>v.name);
