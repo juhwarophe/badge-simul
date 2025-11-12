@@ -5,52 +5,107 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>뱃지 시뮬레이터</title>
 <style>
-  body { font-family: Pretendard, sans-serif; background:#121212; color:#eee; text-align:center; padding:40px; }
-  h1 { color:#ffcc00; }
+  body { font-family: Pretendard, sans-serif; background:#121212; color:#eee; text-align:center; padding:20px; margin:0; }
+  h1 { color:#ffcc00; margin-top:12px; }
   .option { margin:8px auto; width:60%; padding:10px; border-radius:10px; cursor:pointer; transition:0.2s; color:#000; }
   .option:hover { filter: brightness(1.1); }
   .locked { border:2px solid #fff; }
   .btn { padding:10px 20px; background:#ffcc00; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:20px; }
   .btn:hover { background:#ffdd33; }
   label { display:block; margin:20px; }
+
+  /* 메인 화면 */
+  #mainScreen, #underConstruction {
+    display:flex; justify-content:center; align-items:center; gap:20px; height:calc(100vh - 40px);
+  }
+  .mainImage { width:150px; height:150px; border-radius:20px; cursor:pointer; display:flex; justify-content:center; align-items:center; overflow:hidden; transition:0.2s; background:#333; }
+  .mainImage:hover { filter: brightness(1.2); }
+  .mainImage img { width:100%; height:100%; object-fit:cover; display:block; }
+
+  #simulatorScreen { display:none; padding:24px; min-height: calc(100vh - 40px); box-sizing:border-box; }
+  #underConstruction { display:none; flex-direction:column; color:#ffcc00; font-size:24px; }
+  .smallBtn { margin-top:16px; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; background:#444; color:#fff; }
 </style>
 </head>
 <body>
-<h1>뱃지 시뮬레이터</h1>
-<label>
-  <input type="checkbox" id="useRefine"> 연마제 사용 (최대 2개 옵션 잠금 가능)
-</label>
-<button class="btn" onclick="rollOptions()">옵션 굴리기</button>
-<div id="options"></div>
+
+<!-- 메인 화면 -->
+<div id="mainScreen">
+  <div class="mainImage" id="leftImage" title="시뮬레이터로 이동">
+    <img src="https://i.ifh.cc/NotKyl.png" alt="왼쪽 이미지">
+  </div>
+  <div class="mainImage" id="midImage" title="공사중">
+    <img src="https://i.ifh.cc/HgXLM7.png" alt="가운데 이미지">
+  </div>
+  <div class="mainImage" id="rightImage" title="준비중">
+    <div style="color:#ddd; font-size:14px;">(준비중)</div>
+  </div>
+</div>
+
+<!-- 공사중 화면 -->
+<div id="underConstruction">
+  <div>공사중입니다</div>
+  <button class="smallBtn" onclick="backToMain()">메인으로</button>
+</div>
+
+<!-- 뱃지 시뮬레이터 화면 -->
+<div id="simulatorScreen">
+  <h1>뱃지 시뮬레이터</h1>
+  <label>
+    <input type="checkbox" id="useRefine"> 연마제 사용 (최대 2개 옵션 잠금 가능)
+  </label>
+  <button class="btn" onclick="rollOptions()">옵션 굴리기</button>
+  <div id="options"></div>
+  <button class="btn" onclick="backToMain()">메인 화면으로</button>
+</div>
 
 <script>
+function showSimulator(){
+  document.getElementById("mainScreen").style.display = "none";
+  document.getElementById("underConstruction").style.display = "none";
+  document.getElementById("simulatorScreen").style.display = "block";
+}
+function showUnderConstruction(){
+  document.getElementById("mainScreen").style.display = "none";
+  document.getElementById("simulatorScreen").style.display = "none";
+  document.getElementById("underConstruction").style.display = "flex";
+}
+function backToMain(){
+  document.getElementById("simulatorScreen").style.display = "none";
+  document.getElementById("underConstruction").style.display = "none";
+  document.getElementById("mainScreen").style.display = "flex";
+}
+document.getElementById("leftImage").addEventListener("click", showSimulator);
+document.getElementById("midImage").addEventListener("click", showUnderConstruction);
+document.getElementById("rightImage").addEventListener("click", ()=>alert("준비중입니다."));
+
 const groups = [
   {
     weight:30,
     options:[
-      ["체력",[680,850,1020,2040]],
-      ["공격력",[70,88,105,210]],
-      ["방어력",[35,44,53,105]],
+      ["체력",[680,850,1020]],
+      ["공격력",[70,88,105]],
+      ["방어력",[35,44,53]],
       ["체력",["4%","5%","6%","12%"]],
       ["공격력",["4%","5%","6%","12%"]],
-      ["방어력",["10%","12.5%","15%","30%"]],
+      ["방어력",["10%","12.5%","15%"]],
     ]
   },
   {
     weight:27.65,
     options:[
-      ["일반 공격 치명타율",["5%","6.3%","7.5%","15%"]],
-      ["스킬 치명타율",["5%","6.3%","7.5%","15%"]],
-      ["필살기 치명타율",["5%","6.3%","7.5%","15%"]],
-      ["표식 치명타율",["5%","6.3%","7.5%","15%"]],
-      ["소환물 치명타율",["5%","6.3%","7.5%","15%"]],
-      ["파생물 치명타율",["5%","6.3%","7.5%","15%"]],
+      ["일반 공격 치명타율",["5%","6.3%","7.5%"]],
+      ["스킬 치명타율",["5%","6.3%","7.5%"]],
+      ["필살기 치명타율",["5%","6.3%","7.5%"]],
+      ["표식 치명타율",["5%","6.3%","7.5%"]],
+      ["소환물 치명타율",["5%","6.3%","7.5%"]],
+      ["파생물 치명타율",["5%","6.3%","7.5%"]],
     ]
   },
   {
     weight:34.35,
     options:[
-      ["치명타 피해",["8%","10%","12%","24%"]],
+      ["치명타 피해",["8%","10%","12%"]],
       ["속성 피해",["4%","5%","6%","12%"]],
       ["일반공격 피해",["10%","12.5%","15%","30%"]],
       ["스킬 피해",["7%","8%","10%","20%"]],
@@ -71,9 +126,8 @@ const groups = [
   }
 ];
 
-const tierWeights = [45,35,12.5,7.5];
-const colors = ["#66ff66","#33ccff","#ffdd33","linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"]; 
-
+const tierWeights = [35,30,20,15];
+const colors = ["#66ff66","#33ccff","#ffdd33","linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"];
 const lockedOptions = new Set();
 const optionsDiv = document.getElementById("options");
 const useRefine = document.getElementById("useRefine");
@@ -89,20 +143,33 @@ function randomByWeight(weights){
   return weights.length-1;
 }
 
+function pickGroup(){
+  const weights = groups.map(g=>g.weight);
+  const total = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*total;
+  for(let i=0;i<weights.length;i++){
+    if(r<weights[i]) return groups[i];
+    r -= weights[i];
+  }
+  return groups[groups.length-1];
+}
+
 function pickUniqueOptions(excludeNames){
-  const available = [];
-  groups.forEach(g=>{
-    g.options.forEach(o=>{
-      if(!excludeNames.includes(o[0])) available.push(o);
-    });
-  });
   const result = [];
-  while(result.length<4-excludeNames.length && available.length>0){
-    const idx = Math.floor(Math.random()*available.length);
-    const opt = available.splice(idx,1)[0];
-    const tierIndex = randomByWeight(tierWeights);
+  const usedNames = new Set(excludeNames);
+
+  while(result.length < 4 - excludeNames.length){
+    const group = pickGroup();
+    const candidates = group.options.filter(o => !usedNames.has(o[0]));
+    if(candidates.length === 0) continue;
+    const opt = candidates[Math.floor(Math.random()*candidates.length)];
+
+    let tierIndex = randomByWeight(tierWeights);
+    if(tierIndex >= opt[1].length) tierIndex = opt[1].length - 1;
     const val = opt[1][tierIndex];
-    result.push({name: opt[0], value: val, tier: tierIndex});
+
+    result.push({ name: opt[0], value: val, tier: tierIndex, maxTier: opt[1].length - 1 });
+    usedNames.add(opt[0]);
   }
   return result;
 }
@@ -110,10 +177,9 @@ function pickUniqueOptions(excludeNames){
 function rollOptions(){
   const lockedNames = [];
   for(let i=0;i<4;i++){
-    if(lockedOptions.has(i)){
-      lockedNames.push(optionValues[i].name);
-    }
+    if(lockedOptions.has(i)) lockedNames.push(optionValues[i].name);
   }
+
   const newValues = pickUniqueOptions(lockedNames);
   let ni=0;
   for(let i=0;i<4;i++){
@@ -127,7 +193,7 @@ function toggleLock(i){
   if(!useRefine.checked) return;
   if(lockedOptions.has(i)){
     lockedOptions.delete(i);
-  }else{
+  } else {
     if(lockedOptions.size>=2){ alert("최대 2개까지만 잠글 수 있습니다!"); return; }
     lockedOptions.add(i);
   }
@@ -137,12 +203,22 @@ function toggleLock(i){
 function renderOptions(){
   optionsDiv.innerHTML="";
   for(let i=0;i<4;i++){
-    const div=document.createElement("div");
     const opt = optionValues[i];
+    const div=document.createElement("div");
     div.textContent=`${opt.name} +${opt.value}`;
     div.className="option";
     if(lockedOptions.has(i)) div.classList.add("locked");
-    div.style.background = colors[opt.tier];
+
+    // 색상 처리
+    if(opt.tier === 3 && opt.maxTier >= 3){
+      div.style.background = "linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)";
+      div.style.color = "#000";
+    } else {
+      const colorIndex = Math.min(opt.tier, 2);
+      div.style.background = colors[colorIndex];
+      div.style.color = "#000";
+    }
+
     div.onclick = ()=>toggleLock(i);
     optionsDiv.appendChild(div);
   }
@@ -150,10 +226,11 @@ function renderOptions(){
 
 optionValues = pickUniqueOptions([]);
 while(optionValues.length<4){
-  optionValues.push(pickUniqueOptions(optionValues.map(v=>v.name))[0]);
+  const existingNames = optionValues.map(v=>v.name);
+  const extra = pickUniqueOptions(existingNames)[0];
+  optionValues.push(extra);
 }
 renderOptions();
 </script>
 </body>
 </html>
-
