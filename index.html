@@ -39,7 +39,7 @@
   <div class="mainImage" id="leftImage" title="시뮬레이터로 이동">
     <img src="https://i.ifh.cc/NotKyl.png" alt="왼쪽 이미지">
   </div>
-  <div class="mainImage" id="midImage" title="공사중">
+  <div class="mainImage" id="midImage" title="준비중">
     <img src="https://i.ifh.cc/HgXLM7.png" alt="가운데 이미지">
   </div>
   <div class="mainImage" id="rightImage" title="준비중">
@@ -47,9 +47,9 @@
   </div>
 </div>
 
-<!-- 공사중 화면 -->
+<!-- 준비중 화면 -->
 <div id="underConstruction">
-  <div>공사중입니다</div>
+  <div>준비중입니다</div>
   <button class="smallBtn" onclick="backToMain()">메인으로</button>
 </div>
 
@@ -136,7 +136,7 @@ const groups = [
 ];
 
 const tierWeights = [40,35,15,10];
-const colors = ["#66ff66","#33ccff","#ffdd33","linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"];
+const colors = ["#66ff66","#33ccff","#ffdd33"];
 const lockedOptions = new Set();
 const optionsDiv = document.getElementById("options");
 const useRefine = document.getElementById("useRefine");
@@ -237,8 +237,10 @@ function renderOptions(){
     if(lockedOptions.has(i)) div.classList.add("locked");
 
     if(opt.tier === 3 && opt.maxTier >= 3){
-      div.style.background = "linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)";
-      div.style.color = "#000";
+      div.style.background = "linear-gradient(90deg, #ff9a9e, #fad0c4, #fbc2eb, #a1c4fd, #c2e9fb)";
+      div.style.color = "#fff";
+      div.style.textShadow = "0 0 3px #000";
+      div.style.fontWeight = "bold";
     } else {
       const colorIndex = Math.min(opt.tier, 2);
       div.style.background = colors[colorIndex];
