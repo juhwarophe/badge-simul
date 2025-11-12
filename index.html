@@ -71,9 +71,8 @@ const groups = [
   }
 ];
 
-const tierWeights = [40,30,20,10];
+const tierWeights = [50,35,10,5];
 const colors = ["#66ff66","#33ccff","#ffdd33","linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"]; 
-// 1티어=녹색, 2티어=파랑, 3티어=금색, 4티어=무지개
 
 const lockedOptions = new Set();
 const optionsDiv = document.getElementById("options");
@@ -101,9 +100,9 @@ function pickUniqueOptions(excludeNames){
   while(result.length<4-excludeNames.length && available.length>0){
     const idx = Math.floor(Math.random()*available.length);
     const opt = available.splice(idx,1)[0];
-    const tierIndex = randomByWeight(tierWeights); // 티어 결정
+    const tierIndex = randomByWeight(tierWeights);
     const val = opt[1][tierIndex];
-    result.push({name: opt[0], value: val, tier: tierIndex}); // 티어 정보 저장
+    result.push({name: opt[0], value: val, tier: tierIndex});
   }
   return result;
 }
@@ -143,13 +142,12 @@ function renderOptions(){
     div.textContent=`${opt.name} +${opt.value}`;
     div.className="option";
     if(lockedOptions.has(i)) div.classList.add("locked");
-    div.style.background = colors[opt.tier]; // 티어별 배경색 적용
+    div.style.background = colors[opt.tier];
     div.onclick = ()=>toggleLock(i);
     optionsDiv.appendChild(div);
   }
 }
 
-// 초기 옵션 생성
 optionValues = pickUniqueOptions([]);
 while(optionValues.length<4){
   optionValues.push(pickUniqueOptions(optionValues.map(v=>v.name))[0]);
