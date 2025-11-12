@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>뱃지 시뮬레이터</title>
+<style>
+  body { font-family: Pretendard, sans-serif; background:#121212; color:#eee; text-align:center; padding:40px; }
+  h1 { color:#ffcc00; }
+  .option { margin:8px auto; width:60%; padding:10px; border-radius:10px; background:#222; cursor:pointer; transition:0.2s; }
+  .option:hover { background:#333; }
+  .locked { background:#444; color:#66ff66; border:1px solid #66ff66; }
+  .btn { padding:10px 20px; background:#ffcc00; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:20px; }
+  .btn:hover { background:#ffdd33; }
+  label { display:block; margin:20px; }
+</style>
+</head>
+<body>
+<h1>뱃지 시뮬레이터</h1>
+<label>
+  <input type="checkbox" id="useRefine"> 연마제 사용 (최대 2개 옵션 잠금 가능)
+</label>
+<button class="btn" onclick="rollOptions()">옵션 굴리기</button>
+<div id="options"></div>
+
+<script>
+const groups = [
+  {
+    weight:30,
+    options:[
+      ["체력",[680,850,1020,2040]],
+      ["공격력",[70,88,105,210]],
+      ["방어력",[35,44,53,105]],
+      ["체력 %",["4%","5%","6%","12%"]],
+      ["공격력 %",["4%","5%","6%","12%"]],
+      ["방어력 %",["10%","12.5%","15%","30%"]],
+    ]
+  },
+  {
+    weight:27.65,
+    options:[
+      ["일반 공격 치명타율",["5%","6.3%","7.5%","15%"]],
+      ["스킬 치명타율",["5%","6.3%","7.5%","15%"]],
+      ["필살기 치명타율",["5%","6.3%","7.5%","15%"]],
+      ["표식 치명타율",["5%","6.3%","7.5%","15%"]],
+      ["소환물 치명타율",["5%","6.3%","7.5%","15%"]],
+      ["파생물 치명타율",["5%","6.3%","7.5%","15%"]],
+    ]
+  },
+  {
+    weight:34.35,
+    options:[
+      ["치명타 피해",["8%","10%","12%","24%"]],
+      ["6속성 피해",["4%","5%","6%","12%"]],
+      ["일반공격 피해",["10%","12.5%","15%","30%"]],
+      ["스킬 피해",["7%","8%","10%","20%"]],
+      ["필살기 피해",["10%","13%","15%","30%"]],
+      ["표식 피해",["27%","33%","40%","80%"]],
+      ["소환물 피해",["7%","8%","10%","20%"]],
+      ["파생물 피해",["7%","8%","10%","20%"]],
+    ]
+  },
+  {
+    weight:8,
+    options:[
+      ["치명타율",["5%","6.3%","7.5%","15%"]],
+      ["6속성 관통",[35,40,53,110]],
+      ["메인 SP",["10%","12.5%","15%","30%"]],
+      ["지원 SP",["13.5%","17","20.3%","40%"]],
+    ]
+  }
+];
+
+const tierWeights = [40,30,20,10];
+const lockedOptions = new Set();
+const optionsDiv = document.getElementById("options");
+const useRefine = document.getElementById("useRefine");
+let optionValues = [];
+
+function randomByWeight(weights){
+  const total = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*total;
+  for(let i=0;i<weights.length;i++){
+    if(r<weights[i]) return i;
+    r-=weights[i];
+  }
+  return weights.length-1;
+}
+
+function pickUniqueOptions(excludeNames){
+  const available = [];
+  groups.forEach(g=>{
+    g.options.forEach(o=>{
+      if(!excludeNames.includes(o[0])) available.push(o);
+    });
+  });
+  const result = [];
+  while(result.length<4-excludeNames.length && available.length>0){
+    const idx = Math.floor(Math.random()*available.length);
+    const opt = available.splice(idx,1)[0];
+    const val = opt[1][randomByWeight(tierWeights)];
+    result.push(`${opt[0]} +${val}`);
+  }
+  return result;
+}
+
+function rollOptions(){
+  const lockedValues = [];
+  const lockedNames = [];
+  for(let i=0;i<4;i++){
+    if(lockedOptions.has(i)){
+      lockedValues[i]=optionValues[i];
+      lockedNames.push(optionValues[i].split(" +")[0]); // 이름만 추출
+    }
+  }
+  const newValues = pickUniqueOptions(lockedNames);
+  let ni=0;
+  for(let i=0;i<4;i++){
+    if(lockedOptions.has(i)) continue;
+    optionValues[i]=newValues[ni++];
+  }
+  renderOptions();
+}
+
+function toggleLock(i){
+  if(!useRefine.checked) return;
+  if(lockedOptions.has(i)){
+    lockedOptions.delete(i);
+  }else{
+    if(lockedOptions.size>=2){ alert("최대 2개까지만 잠글 수 있습니다!"); return; }
+    lockedOptions.add(i);
+  }
+  renderOptions();
+}
+
+function renderOptions(){
+  optionsDiv.innerHTML="";
+  for(let i=0;i<4;i++){
+    const div=document.createElement("div");
+    div.textContent=optionValues[i];
+    div.className="option";
+    if(lockedOptions.has(i)) div.classList.add("locked");
+    div.onclick = ()=>toggleLock(i);
+    optionsDiv.appendChild(div);
+  }
+}
+
+// 초기 옵션 생성
+optionValues = pickUniqueOptions([]);
+while(optionValues.length<4){ // 4줄 채우기
+  optionValues.push(pickUniqueOptions(optionValues.map(v=>v.split(" +")[0]))[0]);
+}
+renderOptions();
+</script>
+</body>
+</html>
