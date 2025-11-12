@@ -7,9 +7,9 @@
 <style>
   body { font-family: Pretendard, sans-serif; background:#121212; color:#eee; text-align:center; padding:40px; }
   h1 { color:#ffcc00; }
-  .option { margin:8px auto; width:60%; padding:10px; border-radius:10px; background:#222; cursor:pointer; transition:0.2s; }
-  .option:hover { background:#333; }
-  .locked { background:#444; color:#66ff66; border:1px solid #66ff66; }
+  .option { margin:8px auto; width:60%; padding:10px; border-radius:10px; cursor:pointer; transition:0.2s; color:#000; }
+  .option:hover { filter: brightness(1.1); }
+  .locked { border:2px solid #fff; }
   .btn { padding:10px 20px; background:#ffcc00; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:20px; }
   .btn:hover { background:#ffdd33; }
   label { display:block; margin:20px; }
@@ -66,12 +66,15 @@ const groups = [
       ["치명타율",["5%","6.3%","7.5%","15%"]],
       ["6속성 관통",[35,40,53,110]],
       ["메인 SP",["10%","12.5%","15%","30%"]],
-      ["지원 SP",["13.5%","17","20.3%","40%"]],
+      ["지원 SP",["13.5","17","20.3","40%"]],
     ]
   }
 ];
 
 const tierWeights = [40,30,20,10];
+const colors = ["#66ff66","#33ccff","#ffdd33","linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"]; 
+// 1티어=녹색, 2티어=파랑, 3티어=금색, 4티어=무지개
+
 const lockedOptions = new Set();
 const optionsDiv = document.getElementById("options");
 const useRefine = document.getElementById("useRefine");
@@ -98,19 +101,18 @@ function pickUniqueOptions(excludeNames){
   while(result.length<4-excludeNames.length && available.length>0){
     const idx = Math.floor(Math.random()*available.length);
     const opt = available.splice(idx,1)[0];
-    const val = opt[1][randomByWeight(tierWeights)];
-    result.push(`${opt[0]} +${val}`);
+    const tierIndex = randomByWeight(tierWeights); // 티어 결정
+    const val = opt[1][tierIndex];
+    result.push({name: opt[0], value: val, tier: tierIndex}); // 티어 정보 저장
   }
   return result;
 }
 
 function rollOptions(){
-  const lockedValues = [];
   const lockedNames = [];
   for(let i=0;i<4;i++){
     if(lockedOptions.has(i)){
-      lockedValues[i]=optionValues[i];
-      lockedNames.push(optionValues[i].split(" +")[0]); // 이름만 추출
+      lockedNames.push(optionValues[i].name);
     }
   }
   const newValues = pickUniqueOptions(lockedNames);
@@ -137,9 +139,11 @@ function renderOptions(){
   optionsDiv.innerHTML="";
   for(let i=0;i<4;i++){
     const div=document.createElement("div");
-    div.textContent=optionValues[i];
+    const opt = optionValues[i];
+    div.textContent=`${opt.name} +${opt.value}`;
     div.className="option";
     if(lockedOptions.has(i)) div.classList.add("locked");
+    div.style.background = colors[opt.tier]; // 티어별 배경색 적용
     div.onclick = ()=>toggleLock(i);
     optionsDiv.appendChild(div);
   }
@@ -147,8 +151,8 @@ function renderOptions(){
 
 // 초기 옵션 생성
 optionValues = pickUniqueOptions([]);
-while(optionValues.length<4){ // 4줄 채우기
-  optionValues.push(pickUniqueOptions(optionValues.map(v=>v.split(" +")[0]))[0]);
+while(optionValues.length<4){
+  optionValues.push(pickUniqueOptions(optionValues.map(v=>v.name))[0]);
 }
 renderOptions();
 </script>
