@@ -25,6 +25,11 @@
   #simulatorScreen { display:none; padding:24px; min-height: calc(100vh - 40px); box-sizing:border-box; }
   #underConstruction { display:none; flex-direction:column; color:#ffcc00; font-size:24px; }
   .smallBtn { margin-top:16px; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; background:#444; color:#fff; }
+
+  /* 시뮬레이션 횟수 표시 */
+  #rollCountDisplay { margin-top:10px; font-size:18px; color:#aaa; }
+  #resetBtn { margin-left:8px; padding:6px 12px; font-size:14px; border-radius:6px; background:#333; color:#ffcc00; border:1px solid #ffcc00; cursor:pointer; }
+  #resetBtn:hover { background:#444; }
 </style>
 </head>
 <body>
@@ -44,13 +49,17 @@
 
 <!-- 공사중 화면 -->
 <div id="underConstruction">
-  <div>공사중입니다</div>
+  <div>🔧 공사중입니다 — 곧 돌아옵니다!</div>
   <button class="smallBtn" onclick="backToMain()">메인으로</button>
 </div>
 
 <!-- 뱃지 시뮬레이터 화면 -->
 <div id="simulatorScreen">
   <h1>뱃지 시뮬레이터</h1>
+  <div id="rollCountDisplay">
+    🎲 시뮬레이션 횟수: <span id="rollCount">0</span>회
+    <button id="resetBtn" onclick="resetSimulation()">리셋</button>
+  </div>
   <label>
     <input type="checkbox" id="useRefine"> 연마제 사용 (최대 2개 옵션 잠금 가능)
   </label>
@@ -60,6 +69,7 @@
 </div>
 
 <script>
+/* ==================== 화면 전환 ==================== */
 function showSimulator(){
   document.getElementById("mainScreen").style.display = "none";
   document.getElementById("underConstruction").style.display = "none";
@@ -79,6 +89,7 @@ document.getElementById("leftImage").addEventListener("click", showSimulator);
 document.getElementById("midImage").addEventListener("click", showUnderConstruction);
 document.getElementById("rightImage").addEventListener("click", ()=>alert("준비중입니다."));
 
+/* ==================== 시뮬레이터 데이터 ==================== */
 const groups = [
   {
     weight:30,
@@ -126,13 +137,18 @@ const groups = [
   }
 ];
 
-const tierWeights = [35,30,20,15];
+const tierWeights = [40,35,15,10];
 const colors = ["#66ff66","#33ccff","#ffdd33","linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"];
 const lockedOptions = new Set();
 const optionsDiv = document.getElementById("options");
 const useRefine = document.getElementById("useRefine");
 let optionValues = [];
 
+// 🎲 시뮬레이션 횟수 변수
+let rollCount = 0;
+const rollCountSpan = document.getElementById("rollCount");
+
+/* ==================== 유틸리티 함수 ==================== */
 function randomByWeight(weights){
   const total = weights.reduce((a,b)=>a+b,0);
   let r = Math.random()*total;
@@ -174,6 +190,7 @@ function pickUniqueOptions(excludeNames){
   return result;
 }
 
+/* ==================== 옵션 굴리기 ==================== */
 function rollOptions(){
   const lockedNames = [];
   for(let i=0;i<4;i++){
@@ -186,9 +203,25 @@ function rollOptions(){
     if(lockedOptions.has(i)) continue;
     optionValues[i]=newValues[ni++];
   }
+
+  // 🎲 시뮬레이션 횟수 +1
+  rollCount++;
+  rollCountSpan.textContent = rollCount;
+
   renderOptions();
 }
 
+/* ==================== 리셋 기능 ==================== */
+function resetSimulation(){
+  if(!confirm("시뮬레이션 횟수를 초기화할까요?")) return;
+  rollCount = 0;
+  rollCountSpan.textContent = rollCount;
+  lockedOptions.clear();
+  optionValues = pickUniqueOptions([]);
+  renderOptions();
+}
+
+/* ==================== 옵션 렌더링 ==================== */
 function toggleLock(i){
   if(!useRefine.checked) return;
   if(lockedOptions.has(i)){
@@ -209,7 +242,6 @@ function renderOptions(){
     div.className="option";
     if(lockedOptions.has(i)) div.classList.add("locked");
 
-    // 색상 처리
     if(opt.tier === 3 && opt.maxTier >= 3){
       div.style.background = "linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)";
       div.style.color = "#000";
@@ -224,6 +256,7 @@ function renderOptions(){
   }
 }
 
+/* ==================== 초기화 ==================== */
 optionValues = pickUniqueOptions([]);
 while(optionValues.length<4){
   const existingNames = optionValues.map(v=>v.name);
