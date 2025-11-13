@@ -5,263 +5,468 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>뱃지 시뮬레이터</title>
 <style>
-  body { font-family: Pretendard, sans-serif; background:#121212; color:#eee; text-align:center; padding:20px; margin:0; }
-  h1 { color:#ffcc00; margin-top:12px; }
-  .option { margin:8px auto; width:60%; padding:10px; border-radius:10px; cursor:pointer; transition:0.2s; color:#000; }
-  .option:hover { filter: brightness(1.1); }
-  .locked { border:2px solid #fff; }
-  .btn { padding:10px 20px; background:#ffcc00; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:20px; }
-  .btn:hover { background:#ffdd33; }
-  label { display:block; margin:20px; }
-
-  /* 메인 화면 */
-  #mainScreen, #underConstruction {
-    display:flex; justify-content:center; align-items:center; gap:20px; height:calc(100vh - 40px);
+  body {
+    font-family: Pretendard, sans-serif;
+    background: #121212;
+    color: #eee;
+    text-align: center;
+    padding: 20px;
+    margin: 0;
   }
-  .mainImage { width:150px; height:150px; border-radius:20px; cursor:pointer; display:flex; justify-content:center; align-items:center; overflow:hidden; transition:0.2s; background:#333; }
+  h1 { color: #ffcc00; margin-top: 12px; }
+  .btn, .smallBtn {
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  .btn {
+    padding: 10px 20px;
+    background: #ffcc00;
+    margin-top: 20px;
+  }
+  .btn:hover { background: #ffdd33; }
+  .smallBtn {
+    margin-top: 16px;
+    padding: 8px 14px;
+    background: #444;
+    color: #fff;
+  }
+  .smallBtn:hover { background: #666; }
+  .option {
+    margin: 8px auto;
+    width: 60%;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    color: #000;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideIn 0.3s ease-out forwards;
+    animation-delay: calc(var(--index) * 0.05s);
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .option:hover { filter: brightness(1.1); }
+  .locked { border: 2px solid #fff; }
+  #mainScreen, #underConstruction {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    height: calc(100vh - 40px);
+  }
+  .mainImage {
+    width: 150px;
+    height: 150px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: 0.2s;
+    background: #333;
+    position: relative;
+    pointer-events: auto;
+  }
   .mainImage:hover { filter: brightness(1.2); }
-  .mainImage img { width:100%; height:100%; object-fit:cover; display:block; }
-
-  #simulatorScreen { display:none; padding:24px; min-height: calc(100vh - 40px); box-sizing:border-box; }
-  #underConstruction { display:none; flex-direction:column; color:#ffcc00; font-size:24px; }
-  .smallBtn { margin-top:16px; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; background:#444; color:#fff; }
-
-  /* 시뮬레이션 횟수 표시 */
-  #rollCountDisplay { margin-top:10px; font-size:18px; color:#aaa; }
-  #resetBtn { margin-left:8px; padding:6px 12px; font-size:14px; border-radius:6px; background:#333; color:#ffcc00; border:1px solid #ffcc00; cursor:pointer; }
-  #resetBtn:hover { background:#444; }
+  .mainImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .mainImage .fallback {
+    color: #ddd;
+    font-size: 14px;
+    display: none;
+  }
+  .mainImage img:not([src]) + .fallback {
+    display: block;
+  }
+  #simulatorScreen, #simulator80Screen {
+    display: none;
+    padding: 24px;
+    min-height: calc(100vh - 40px);
+  }
+  #underConstruction {
+    display: none;
+    flex-direction: column;
+    color: #ffcc00;
+    font-size: 24px;
+  }
+  .rollCountDisplay {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #aaa;
+  }
+  #resetBtn, #resetBtn80 {
+    margin-left: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    background: #333;
+    color: #ffcc00;
+    border: 1px solid #ffcc00;
+    cursor: pointer;
+  }
+  #resetBtn:hover, #resetBtn80:hover { background: #444; }
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff4444;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: none;
+    z-index: 1000;
+  }
+  @media (max-width: 600px) {
+    .option { width: 90%; }
+    .mainImage { width: 100px; height: 100px; }
+  }
 </style>
 </head>
 <body>
-
 <!-- 메인 화면 -->
 <div id="mainScreen">
-  <div class="mainImage" id="leftImage" title="시뮬레이터로 이동">
-    <img src="https://i.ifh.cc/NotKyl.png" alt="왼쪽 이미지">
+  <div class="mainImage" id="leftImage" title="70LV 시뮬레이터로 이동" tabindex="0">
+    <img src="https://i.ifh.cc/NotKyl.png" alt="70LV 시뮬레이터">
+    <div class="fallback">70lv 시뮬레이터</div>
   </div>
-  <div class="mainImage" id="midImage" title="준비중">
-    <img src="https://i.ifh.cc/HgXLM7.png" alt="가운데 이미지">
+  <div class="mainImage" id="midImage" title="80LV 시뮬레이터" tabindex="0">
+    <img src="https://i.ifh.cc/HgXLM7.png" alt="80LV 시뮬레이터">
+    <div class="fallback">80lv 시뮬레이터</div>
   </div>
-  <div class="mainImage" id="rightImage" title="준비중">
-    <div style="color:#ddd; font-size:14px;">(준비중)</div>
+  <div class="mainImage" id="rightImage" title="준비중" tabindex="0">
+    <div style="color: #ddd; font-size: 14px;">(준비중)</div>
   </div>
 </div>
-
 <!-- 준비중 화면 -->
 <div id="underConstruction">
   <div>준비중입니다</div>
-  <button class="smallBtn" onclick="backToMain()">메인으로</button>
+  <button class="smallBtn" onclick="backToMain()" tabindex="0">메인으로</button>
 </div>
-
-<!-- 뱃지 시뮬레이터 화면 -->
+<!-- 70LV 뱃지 시뮬레이터 -->
 <div id="simulatorScreen">
-  <h1>뱃지 시뮬레이터</h1>
-  <div id="rollCountDisplay">
+  <h1>70LV 뱃지 시뮬레이터</h1>
+  <div class="rollCountDisplay">
     🎲 시뮬레이션 횟수: <span id="rollCount">0</span>회
-    <button id="resetBtn" onclick="resetSimulation()">리셋</button>
+    <button id="resetBtn" onclick="resetSimulation('simulator')" tabindex="0">리셋</button>
   </div>
   <label>
     <input type="checkbox" id="useRefine"> 연마제 사용 (최대 2개 옵션 잠금 가능)
   </label>
-
-  <!-- 버튼 순서 바뀐 부분 -->
-  <button class="btn" onclick="backToMain()">메인 화면으로</button>
-  <div id="options"></div>
-  <button class="btn" onclick="rollOptions()">옵션 굴리기</button>
+  <button class="btn" onclick="backToMain()" tabindex="0">메인 화면으로</button>
+  <div id="optionsContainer"></div>
+  <button class="btn" id="rollBtn" onclick="rollOptions('simulator')" tabindex="0">옵션 굴리기</button>
 </div>
-
+<!-- 80LV 뱃지 시뮬레이터 -->
+<div id="simulator80Screen">
+  <h1>80LV 뱃지 시뮬레이터</h1>
+  <div class="rollCountDisplay">
+    🎲 시뮬레이션 횟수: <span id="rollCount80">0</span>회
+    <button id="resetBtn80" onclick="resetSimulation('simulator80')" tabindex="0">리셋</button>
+  </div>
+  <label>
+    <input type="checkbox" id="useRefine80"> 연마제 사용 (최대 2개 옵션 잠금 가능)
+  </label>
+  <button class="btn" onclick="backToMain()" tabindex="0">메인 화면으로</button>
+  <div id="options80Container"></div>
+  <button class="btn" id="rollBtn80" onclick="rollOptions('simulator80')" tabindex="0">옵션 굴리기</button>
+</div>
+<div id="toast"></div>
 <script>
-function showSimulator(){
-  document.getElementById("mainScreen").style.display = "none";
-  document.getElementById("underConstruction").style.display = "none";
-  document.getElementById("simulatorScreen").style.display = "block";
-}
-function showUnderConstruction(){
-  document.getElementById("mainScreen").style.display = "none";
-  document.getElementById("simulatorScreen").style.display = "none";
-  document.getElementById("underConstruction").style.display = "flex";
-}
-function backToMain(){
-  document.getElementById("simulatorScreen").style.display = "none";
-  document.getElementById("underConstruction").style.display = "none";
-  document.getElementById("mainScreen").style.display = "flex";
-}
-document.getElementById("leftImage").addEventListener("click", showSimulator);
-document.getElementById("midImage").addEventListener("click", showUnderConstruction);
-document.getElementById("rightImage").addEventListener("click", ()=>alert("준비중입니다."));
+/* ================= 화면 전환 ================= */
+const mainScreen = document.getElementById("mainScreen");
+const simulatorScreen = document.getElementById("simulatorScreen");
+const simulator80Screen = document.getElementById("simulator80Screen");
+const underConstruction = document.getElementById("underConstruction");
 
+function show(target) {
+  console.log(`Switching to screen: ${target.id}`);
+  [mainScreen, simulatorScreen, simulator80Screen, underConstruction].forEach(div => div.style.display = "none");
+  if (target === mainScreen || target === underConstruction) {
+    target.style.display = "flex";
+  } else {
+    target.style.display = "block";
+  }
+}
+
+function backToMain() {
+  console.log("Returning to main screen");
+  show(mainScreen);
+}
+
+/* ================= 데이터 정의 ================= */
 const groups = [
-  {
-    weight:30,
-    options:[
-      ["체력",[680,850,1020]],
-      ["공격력",[70,88,105]],
-      ["방어력",[35,44,53]],
-      ["체력",["4%","5%","6%","12%"]],
-      ["공격력",["4%","5%","6%","12%"]],
-      ["방어력",["10%","12.5%","15%"]],
-    ]
-  },
-  {
-    weight:27.65,
-    options:[
-      ["일반 공격 치명타율",["5%","6.3%","7.5%"]],
-      ["스킬 치명타율",["5%","6.3%","7.5%"]],
-      ["필살기 치명타율",["5%","6.3%","7.5%"]],
-      ["표식 치명타율",["5%","6.3%","7.5%"]],
-      ["소환물 치명타율",["5%","6.3%","7.5%"]],
-      ["파생물 치명타율",["5%","6.3%","7.5%"]],
-    ]
-  },
-  {
-    weight:34.35,
-    options:[
-      ["치명타 피해",["8%","10%","12%"]],
-      ["속성 피해",["4%","5%","6%","12%"]],
-      ["일반공격 피해",["10%","12.5%","15%","30%"]],
-      ["스킬 피해",["7%","8%","10%","20%"]],
-      ["필살기 피해",["10%","13%","15%","30%"]],
-      ["표식 피해",["27%","33%","40%","80%"]],
-      ["소환물 피해",["7%","8%","10%","20%"]],
-      ["파생물 피해",["7%","8%","10%","20%"]],
-    ]
-  },
-  {
-    weight:8,
-    options:[
-      ["치명타율",["5%","6.3%","7.5%","15%"]],
-      ["속성 관통",[35,40,53,110]],
-      ["메인 SP",["10%","12.5%","15%","30%"]],
-      ["지원 SP",["13.5","17","20.3","40%"]],
-    ]
-  }
+  { weight: 26.6667, options: [
+    ["체력", [680, 850, 1020]],
+    ["공격력", [70, 88, 105]],
+    ["방어력", [35, 44, 53]],
+    ["체력", ["4%", "5%", "6%", "12%"]],
+    ["공격력", ["4%", "5%", "6%", "12%"]],
+    ["방어력", ["10%", "12.5%", "15%"]]
+  ]},
+  { weight: 24.5778, options: [
+    ["일반 공격 치명타율", ["5%", "6.3%", "7.5%"]],
+    ["스킬 치명타율", ["5%", "6.3%", "7.5%"]],
+    ["필살기 치명타율", ["5%", "6.3%", "7.5%"]],
+    ["표식 치명타율", ["5%", "6.3%", "7.5%"]],
+    ["소환물 치명타율", ["5%", "6.3%", "7.5%"]],
+    ["파생물 치명타율", ["5%", "6.3%", "7.5%"]]
+  ]},
+  { weight: 30.5333, options: [
+    ["치명타 피해", ["8%", "10%", "12%"]],
+    ["속성 피해", ["4%", "5%", "6%", "12%"]],
+    ["일반공격 피해", ["10%", "12.5%", "15%", "30%"]],
+    ["스킬 피해", ["7%", "8%", "10%", "20%"]],
+    ["필살기 피해", ["10%", "13%", "15%", "30%"]],
+    ["표식 피해", ["27%", "33%", "40%", "80%"]],
+    ["소환물 피해", ["7%", "8%", "10%", "20%"]],
+    ["파생물 피해", ["7%", "8%", "10%", "20%"]],
+    ["치명타율", ["5%", "6.3%", "7.5%", "15%"]]
+  ]},
+  { weight: 7.1111, options: [
+    ["속성 관통", [35, 40, 53, 110]],
+    ["메인 SP", ["10%", "12.5%", "15%", "30%"]],
+    ["지원 SP", ["13.5", "17", "20.3", "40%"]]
+  ]},
+  { weight: 11.1111, options: [
+    ["일반 공격 레벨업", ["+1", "+2", "+3"]],
+    ["스킬 레벨업", ["+1", "+2", "+3"]],
+    ["지원 스킬 레벨업", ["+1", "+2", "+3"]],
+    ["필살기 레벨업", ["+1", "+2", "+3"]]
+  ]}
 ];
+const tierWeights = [40, 35, 15, 10];
+const colors = ["#66ff66", "#33ccff", "#ffdd33"];
+const rainbow = "linear-gradient(90deg, #ff9a9e, #fad0c4, #fbc2eb, #a1c4fd, #c2e9fb)";
 
-const tierWeights = [40,35,15,10];
-const colors = ["#66ff66","#33ccff","#ffdd33"];
-const lockedOptions = new Set();
-const optionsDiv = document.getElementById("options");
-const useRefine = document.getElementById("useRefine");
-let optionValues = [];
-
-// 🎲 시뮬레이션 횟수 변수
-let rollCount = 0;
-const rollCountSpan = document.getElementById("rollCount");
-
-function randomByWeight(weights){
-  const total = weights.reduce((a,b)=>a+b,0);
-  let r = Math.random()*total;
-  for(let i=0;i<weights.length;i++){
-    if(r<weights[i]) return i;
-    r-=weights[i];
+const simulators = {
+  simulator: {
+    optionsContainer: document.getElementById("optionsContainer"),
+    useRefine: document.getElementById("useRefine"),
+    lockedOptions: new Set(),
+    optionValues: [],
+    rollCount: 0,
+    rollCountElement: document.getElementById("rollCount")
+  },
+  simulator80: {
+    optionsContainer: document.getElementById("options80Container"),
+    useRefine: document.getElementById("useRefine80"),
+    lockedOptions: new Set(),
+    optionValues: [],
+    rollCount: 0,
+    rollCountElement: document.getElementById("rollCount80")
   }
-  return weights.length-1;
-}
+};
 
-function pickGroup(){
-  const weights = groups.map(g=>g.weight);
-  const total = weights.reduce((a,b)=>a+b,0);
-  let r = Math.random()*total;
-  for(let i=0;i<weights.length;i++){
-    if(r<weights[i]) return groups[i];
+/* ================= 유틸 ================= */
+function randomByWeight(weights) {
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    if (r < weights[i]) return i;
     r -= weights[i];
   }
-  return groups[groups.length-1];
+  return weights.length - 1;
 }
 
-function pickUniqueOptions(excludeNames){
+function pickGroup(is80lv) {
+  const availableGroups = is80lv ? groups : groups.slice(0, -1); // 70lv는 레벨업 그룹(4) 제외
+  return availableGroups[randomByWeight(availableGroups.map(g => g.weight))];
+}
+
+/* ================= 옵션 생성 ================= */
+function pickUniqueOptions(excludeNames = [], is80lv = false) {
+  const used = new Set(excludeNames);
   const result = [];
-  const usedNames = new Set(excludeNames);
+  let maxAttempts = 100;
 
-  while(result.length < 4 - excludeNames.length){
-    const group = pickGroup();
-    const candidates = group.options.filter(o => !usedNames.has(o[0]));
-    if(candidates.length === 0) continue;
-    const opt = candidates[Math.floor(Math.random()*candidates.length)];
+  while (result.length + excludeNames.length < 4 && maxAttempts > 0) {
+    const group = pickGroup(is80lv);
+    const available = group.options.filter(o => !used.has(o[0]));
+    if (!available.length) {
+      maxAttempts--;
+      continue;
+    }
+    let [name, values] = available[Math.floor(Math.random() * available.length)];
+    if (name.includes("레벨업")) {
+      if (!is80lv) continue; // 70lv에서는 레벨업 옵션 건너뜀
+      const roll = Math.random();
+      if (roll < 0.4) {
+        result.push({ name, value: "+1", tier: 3, maxTier: 3 });
+      } else {
+        const tier4Roll = Math.random();
+        if (tier4Roll < 0.75) {
+          result.push({ name, value: "+2", tier: 4, maxTier: 4 });
+        } else {
+          result.push({ name, value: "+3", tier: 4, maxTier: 4 });
+        }
+      }
+    } else {
+      const tier = Math.min(randomByWeight(tierWeights), values.length - 1) + 1;
+      const index = Math.min(tier - 1, values.length - 1);
+      result.push({ name, value: values[index], tier: tier, maxTier: values.length });
+    }
+    used.add(name);
+    maxAttempts--;
+  }
 
-    let tierIndex = randomByWeight(tierWeights);
-    if(tierIndex >= opt[1].length) tierIndex = opt[1].length - 1;
-    const val = opt[1][tierIndex];
-
-    result.push({ name: opt[0], value: val, tier: tierIndex, maxTier: opt[1].length - 1 });
-    usedNames.add(opt[0]);
+  if (result.length + excludeNames.length < 4) {
+    console.warn("Not enough unique options, returning default");
+    while (result.length + excludeNames.length < 4) {
+      result.push({ name: "기본 옵션", value: "0", tier: 1, maxTier: 1 });
+    }
   }
   return result;
 }
 
-function rollOptions(){
-  const lockedNames = [];
-  for(let i=0;i<4;i++){
-    if(lockedOptions.has(i)) lockedNames.push(optionValues[i].name);
-  }
-
-  const newValues = pickUniqueOptions(lockedNames);
-  let ni=0;
-  for(let i=0;i<4;i++){
-    if(lockedOptions.has(i)) continue;
-    optionValues[i]=newValues[ni++];
-  }
-
-  // 🎲 시뮬레이션 횟수 +1
-  rollCount++;
-  rollCountSpan.textContent = rollCount;
-
-  renderOptions();
-}
-
-function resetSimulation(){
-  if(!confirm("시뮬레이션 횟수를 초기화할까요?")) return;
-  rollCount = 0;
-  rollCountSpan.textContent = rollCount;
-  lockedOptions.clear();
-  optionValues = pickUniqueOptions([]);
-  renderOptions();
-}
-
-function toggleLock(i){
-  if(!useRefine.checked) return;
-  if(lockedOptions.has(i)){
-    lockedOptions.delete(i);
-  } else {
-    if(lockedOptions.size>=2){ alert("최대 2개까지만 잠글 수 있습니다!"); return; }
-    lockedOptions.add(i);
-  }
-  renderOptions();
-}
-
-function renderOptions(){
-  optionsDiv.innerHTML="";
-  for(let i=0;i<4;i++){
-    const opt = optionValues[i];
-    const div=document.createElement("div");
-    div.textContent=`${opt.name} +${opt.value}`;
-    div.className="option";
-    if(lockedOptions.has(i)) div.classList.add("locked");
-
-    if(opt.tier === 3 && opt.maxTier >= 3){
-      div.style.background = "linear-gradient(90deg, #ff9a9e, #fad0c4, #fbc2eb, #a1c4fd, #c2e9fb)";
-      div.style.color = "#fff";
-      div.style.textShadow = "0 0 3px #000";
-      div.style.fontWeight = "bold";
+/* ================= 렌더링 ================= */
+function renderOptions(screen, withAnim = false) {
+  const sim = simulators[screen];
+  sim.optionsContainer.innerHTML = "";
+  sim.optionValues.forEach((opt, i) => {
+    const e = document.createElement("div");
+    e.textContent = `${opt.name} ${opt.value}`;
+    e.className = "option";
+    e.setAttribute("tabindex", "0");
+    if (sim.lockedOptions.has(i)) e.classList.add("locked");
+    if (opt.tier === 4 || (opt.name.includes("레벨업") && opt.value !== "+1")) {
+      console.log(`Rainbow option: ${opt.name} ${opt.value} (tier ${opt.tier})`);
+      e.style.background = rainbow;
+      e.style.color = "#fff";
+      e.style.textShadow = "0 0 3px #000";
     } else {
-      const colorIndex = Math.min(opt.tier, 2);
-      div.style.background = colors[colorIndex];
-      div.style.color = "#000";
+      e.style.background = colors[opt.tier - 1];
+      e.style.color = "#000";
     }
+    if (withAnim && !sim.lockedOptions.has(i)) {
+      e.style.setProperty("--index", i);
+    } else {
+      e.style.opacity = "1";
+      e.style.transform = "translateY(0)";
+      e.style.animation = "none"; // 애니메이션 강제 비활성화
+    }
+    sim.optionsContainer.appendChild(e);
+  });
+}
 
-    div.onclick = ()=>toggleLock(i);
-    optionsDiv.appendChild(div);
+/* ================= 시뮬 ================= */
+function rollOptions(screen) {
+  const sim = simulators[screen];
+  const lockedNames = [...sim.lockedOptions].map(i => sim.optionValues[i].name);
+  const newValues = pickUniqueOptions(lockedNames, screen === "simulator80");
+  let n = 0;
+  sim.optionValues = sim.optionValues.map((opt, i) => sim.lockedOptions.has(i) ? opt : newValues[n++]);
+  sim.rollCount++;
+  sim.rollCountElement.textContent = sim.rollCount;
+  renderOptions(screen, true);
+}
+
+function resetSimulation(screen) {
+  if (!confirm("시뮬레이션을 초기화할까요?")) return;
+  const sim = simulators[screen];
+  sim.rollCount = 0;
+  sim.lockedOptions.clear();
+  sim.optionValues = pickUniqueOptions([], screen === "simulator80");
+  sim.rollCountElement.textContent = "0";
+  renderOptions(screen);
+}
+
+function toggleLock(i, screen) {
+  const sim = simulators[screen];
+  if (!sim.useRefine.checked) return;
+  if (sim.lockedOptions.has(i)) {
+    sim.lockedOptions.delete(i);
+  } else if (sim.lockedOptions.size >= 2) {
+    showToast("최대 2개까지만 잠글 수 있습니다!");
+    return;
+  } else {
+    sim.lockedOptions.add(i);
   }
+  renderOptions(screen, false);
 }
 
-/* ==================== 초기화 ==================== */
-optionValues = pickUniqueOptions([]);
-while(optionValues.length<4){
-  const existingNames = optionValues.map(v=>v.name);
-  const extra = pickUniqueOptions(existingNames)[0];
-  optionValues.push(extra);
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.display = "block";
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 2000);
 }
-renderOptions();
+
+/* ================= 이벤트 위임 ================= */
+function handleOptionClick(e, screen) {
+  if (!e.target.classList.contains("option")) return;
+  const index = Array.from(e.target.parentNode.children).indexOf(e.target);
+  toggleLock(index, screen);
+}
+
+simulators.simulator.optionsContainer.addEventListener("click", (e) => handleOptionClick(e, "simulator"));
+simulators.simulator80.optionsContainer.addEventListener("click", (e) => handleOptionClick(e, "simulator80"));
+
+// 키보드 접근성
+[simulators.simulator.optionsContainer, simulators.simulator80.optionsContainer].forEach(container => {
+  container.addEventListener("keydown", (e) => {
+    if (e.target.classList.contains("option") && e.key === "Enter") {
+      e.target.click();
+    }
+  });
+});
+
+/* ================= 초기화 및 이벤트 바인딩 ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM fully loaded, binding events");
+  const leftImage = document.getElementById("leftImage");
+  const midImage = document.getElementById("midImage");
+  const rightImage = document.getElementById("rightImage");
+
+  if (!leftImage || !midImage || !rightImage) {
+    console.error("One or more main image elements not found");
+    showToast("화면 로드 오류, 새로고침 해주세요");
+    return;
+  }
+
+  leftImage.addEventListener("click", () => {
+    console.log("70lv simulator clicked");
+    show(simulatorScreen);
+    renderOptions("simulator", false); // 애니메이션 비활성화
+  });
+  midImage.addEventListener("click", () => {
+    console.log("80lv simulator clicked");
+    show(simulator80Screen);
+    renderOptions("simulator80", false); // 애니메이션 비활성화
+  });
+  rightImage.addEventListener("click", () => {
+    console.log("Under construction clicked");
+    show(underConstruction);
+  });
+
+  [leftImage, midImage, rightImage].forEach(img => {
+    img.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        console.log(`${img.id} enter key pressed`);
+        img.click();
+      }
+    });
+  });
+
+  // 초기화 시 애니메이션 비활성화
+  simulators.simulator.optionValues = pickUniqueOptions([], false);
+  simulators.simulator80.optionValues = pickUniqueOptions([], true);
+  renderOptions("simulator", false);
+  renderOptions("simulator80", false);
+});
 </script>
 </body>
 </html>
